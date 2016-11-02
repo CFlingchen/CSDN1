@@ -92,10 +92,9 @@ public class ValueAnimActivity extends AppCompatActivity implements View.OnClick
     }
 
     @Override
-    public void onBackPressed() {
+    protected void onDestroy() {
         if (flowerAnimation != null)
             flowerAnimation.onDestroy();
-        super.onBackPressed();
+        super.onDestroy();
     }
-
 }

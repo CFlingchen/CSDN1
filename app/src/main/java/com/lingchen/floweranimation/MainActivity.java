@@ -42,5 +42,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         flowerAnimation.addFlowerByScope(new PointF(endFlowerIv.getX(), endFlowerIv.getY()));
     }
 
-
+    @Override
+    protected void onDestroy() {
+        if (flowerAnimation != null)
+            flowerAnimation.onDestroy();
+        super.onDestroy();
+    }
 }

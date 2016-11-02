@@ -21,6 +21,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -50,6 +51,10 @@ public class FlowerAnimation {
     private PointF startP, stopP;
 
     private Random rand = new Random();
+
+    private List<AnimatorSet> animatorSets = new ArrayList<>();
+    //是否退出
+    private boolean isOnDestory;
 
     public FlowerAnimation(Context mContext, ViewGroup rootView) {
         this(mContext, rootView, null, null);
@@ -158,7 +163,8 @@ public class FlowerAnimation {
         animatorY.setDuration(1000);
         //生成动画集合
         final AnimatorSet set = new AnimatorSet();
-
+        if (!isOnDestory)
+            animatorSets.add(set);
         //开启透明度动画然后执行位移动画
         set.play(animatorAlpha).before(animatorX).with(animatorY);
         //加入植入器
@@ -169,8 +175,17 @@ public class FlowerAnimation {
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 rootView.removeView(view);
+                if (!isOnDestory)
+                    animatorSets.remove(set);
             }
 
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                rootView.removeView(view);
+                if (!isOnDestory)
+                    animatorSets.remove(set);
+            }
         });
         set.start();
     }
@@ -221,7 +236,8 @@ public class FlowerAnimation {
         animatorAlpha.setDuration(200);
         //生成动画集合
         final AnimatorSet set = new AnimatorSet();
-
+        if (!isOnDestory)
+            animatorSets.add(set);
         //开启透明度动画然后执行位移动画
         set.play(animatorAlpha).before(getValueAnimator(view, startP1, startP2, startP, stopP));
         //加入植入器
@@ -232,8 +248,17 @@ public class FlowerAnimation {
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 rootView.removeView(view);
+                if (!isOnDestory)
+                    animatorSets.remove(set);
             }
 
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                rootView.removeView(view);
+                if (!isOnDestory)
+                    animatorSets.remove(set);
+            }
         });
         set.start();
     }
@@ -323,6 +348,32 @@ public class FlowerAnimation {
                     + fraction * fraction * fraction * (endValue.y);
             return pointF;
         }
+    }
+
+    /**
+     * 销毁方法
+     */
+    public void onDestroy() {
+        //标记已经取消了
+        isOnDestory = true;
+        //对所有的动画set进行取消
+        for (AnimatorSet set : animatorSets) {
+            if (set != null && set.isRunning()) {
+                set.cancel();
+            }
+        }
+        animatorSets.clear();
+        animatorSets = null;
+        //对Drawable回调设置null
+        for (Drawable drawable : drawables) {
+            if (drawable != null) {
+                drawable.setCallback(null);
+                drawable = null;
+            }
+        }
+        drawables = null;
+        //手动调用gc
+        System.gc();
     }
 
 }
